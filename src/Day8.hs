@@ -4,7 +4,7 @@ import qualified Data.Map as Map
 import Data.Maybe ( fromJust )
 
 main :: IO ()
-main = do   grid <- lines <$> readFile "../Inputs/Day8.txt"
+main = do   grid <- lines <$> readFile "inputs/Day8.txt"
             let dimensions@(i1,i2) = (length grid, length (head grid))
             let gridMap   = makeGridMap grid
             let coordList =  [(n,m) | n <- [1..i1], m <- [1..i2]]

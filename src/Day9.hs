@@ -5,7 +5,7 @@ import Control.Monad.Writer ( foldM, MonadWriter(writer), execWriter, Writer )
 import Data.Set ( Set, singleton, size )
 
 main :: IO ()
-main = do   input <- readFile "../Inputs/Day9.txt"
+main = do   input <- readFile "inputs/Day9.txt"
             let writerMovesL n   =  concatMap (getWriterMoves n .  words) . lines $ input
             let appliedMoves n   = writer (initialState n, singleton (0,0)) >>= \rope -> writerSequence rope (writerMovesL n)
             let tailsMovesNum n  = size . execWriter $ appliedMoves n

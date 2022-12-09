@@ -9,7 +9,7 @@ type Move  = (Int,Int,Int)
 
 main :: IO ()
 main = do
-        x <- lines <$> readFile "../Inputs/Day5.txt" :: IO [String] -- read input and apply lines
+        x <- lines <$> readFile "inputs/Day5.txt" :: IO [String] -- read input and apply lines
         let     (layers,_:[]:strMoves) = break (isPrefixOf " 1") x      -- break the layers input from the moves (ignore the row of numbers and the empty line) 
                 emptyStacks = createStacks $ head layers                -- create an initial list of empty stacks
                 stacks = foldr addLayer emptyStacks layers              -- fill the stacks according to the layers

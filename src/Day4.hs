@@ -2,7 +2,7 @@ module Main where
 
 main :: IO ()
 main = do
-        x <- map ( map read . separator (`elem` "-,")) . lines <$> readFile "../Inputs/Day4.txt" :: IO [[Int]]
+        x <- map ( map read . separator (`elem` "-,")) . lines <$> readFile "inputs/Day4.txt" :: IO [[Int]]
         print $ ("Day4.1: " ++) . show . sum $ map checkContains x
         print $ ("Day4.2: " ++) . show . sum $ map checkOverlaps x
 

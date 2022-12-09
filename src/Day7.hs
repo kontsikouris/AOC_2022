@@ -3,7 +3,7 @@ module Main where
 import Data.List
 
 main :: IO ()
-main = do   fsZipper <- moveHome . flip constructFS mkFSZipper . map strToLine . lines <$> readFile "../Inputs/Day7.txt" 
+main = do   fsZipper <- moveHome . flip constructFS mkFSZipper . map strToLine . lines <$> readFile "inputs/Day7.txt" 
             let sizes = findSumL . getFS $ fsZipper
             let totalSize = head sizes
             print . sum . filter (<= 100000) $ sizes
