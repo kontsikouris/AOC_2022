@@ -22,4 +22,4 @@ checkOverlaps [x,y,z,w]
 
 separator :: (a -> Bool) -> [a] -> [[a]]
 separator _ [] = []
-separator p xs = let (l1,lRest) = span p xs in l1: separator p (dropWhile p lRest)
+separator p xs = let (l1,lRest) = break p xs in l1: separator p (dropWhile p lRest)
