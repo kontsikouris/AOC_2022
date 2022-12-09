@@ -1,9 +1,9 @@
 module Main where
 
-import Data.List
+import Data.List ( isPrefixOf )
 
 main :: IO ()
-main = do   fsZipper <- moveHome . flip constructFS mkFSZipper . map strToLine . lines <$> readFile "inputs/Day7.txt" 
+main = do   fsZipper <- moveHome . flip constructFS mkFSZipper . map strToLine . lines <$> readFile "../../inputs/Day7.txt" 
             let sizes = findSumL . getFS $ fsZipper
             let totalSize = head sizes
             print . sum . filter (<= 100000) $ sizes
@@ -24,7 +24,6 @@ data FS =   FSFile   { getFName :: FileName,  getFSize :: FileSize}
 data FSZipper = CurrFolder {getFS :: FS, getFSRootPath :: FSRootPath } 
         deriving Show
 
-
 data Line = CD String | LS | FSLine FS
 
 moveOut :: FSZipper -> FSZipper
@@ -32,8 +31,10 @@ moveOut (CurrFolder fs ((fsPrev,fsAfter,fName):fsRootPath)) = CurrFolder (FSFold
 moveOut _ = undefined
 
 moveIn :: FolderName -> FSZipper -> FSZipper
-moveIn fName fsZipper = CurrFolder fs $  (fsPrev, fsAfter, getFName $ getFS fsZipper) : getFSRootPath fsZipper  
-        where   (fsPrev,fs:fsAfter) = break ((fName ==) . getFName) (getfsList $ getFS fsZipper)
+moveIn fName fsZipper = CurrFolder fs $  (fsPrev, fsAfter, fsList) : getFSRootPath fsZipper
+
+        where   fsList = getFName $ getFS fsZipper
+                (fsPrev,fs:fsAfter) = break ((fName ==) . getFName) fsList
 
 moveHome :: FSZipper -> FSZipper
 moveHome fsZipper@(CurrFolder _ x) = if null x then fsZipper else moveHome $ moveOut fsZipper

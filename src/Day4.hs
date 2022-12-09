@@ -2,7 +2,7 @@ module Main where
 
 main :: IO ()
 main = do
-        x <- map ( map read . separator (`elem` "-,")) . lines <$> readFile "inputs/Day4.txt" :: IO [[Int]]
+        x <- map ( map read . separator (`elem` "-,")) . lines <$> readFile "../../inputs/Day4.txt" :: IO [[Int]]
         print $ ("Day4.1: " ++) . show . sum $ map checkContains x
         print $ ("Day4.2: " ++) . show . sum $ map checkOverlaps x
 
@@ -22,11 +22,4 @@ checkOverlaps [x,y,z,w]
 
 separator :: (a -> Bool) -> [a] -> [[a]]
 separator _ [] = []
-separator p xs = let (l1,lRest) = splitList p xs in l1: separator p lRest
-
--- same as span but removes the element that equals a
-splitList :: (a -> Bool) -> [a] -> ([a], [a])
-splitList p (x:xs)
-    | p x    =  ([], xs)
-    | otherwise     =  let (l1,l2) = splitList p xs in (x:l1, l2) 
-splitList l [] = ([], [])
+separator p xs = let (l1,lRest) = span p xs in l1: separator p (dropWhile p lRest)

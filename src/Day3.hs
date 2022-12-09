@@ -1,11 +1,11 @@
 module Main where
 
-import Data.Char
-import Data.List
+import Data.Char ( ord )
+import Data.List ( sort )
 
 main :: IO ()
 main = do
-        nums  <- map (map priority) . words <$> readFile "inputs/Day3.txt"
+        nums  <- map (map priority) . words <$> readFile "../../inputs/Day3.txt"
         putStrLn $ ("Day3.1: "++) $ show $ sum $ map common1 nums
         putStrLn $ ("Day3.2: "++) $ show $ sum $ map common2 $ combine3 nums
 
@@ -28,8 +28,7 @@ sortedListsCommon (x:xs) (y:ys)
     | x > y     = sortedListsCommon (x:xs) ys
     | otherwise = x : sortedListsCommon xs ys
 
-sortedListsCommon [] _      = []
-sortedListsCommon _ []      = []      
+sortedListsCommon _ _ = []     
 
 
 findCommon :: Ord a => [[a]] -> [a]

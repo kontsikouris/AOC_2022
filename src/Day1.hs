@@ -4,7 +4,7 @@ import Data.List ( sortBy )
 
 main :: IO ()
 main = do
-        nums  <- castAndSort . lines <$> readFile "inputs/Day1.txt"
+        nums  <- castAndSort . lines <$> readFile "../../inputs/Day1.txt"
         putStrLn $ ("Day 1.1: " ++) . show $ head nums
         putStrLn $ ("Day 1.2: " ++) . show . sum . take 3 $ nums
 

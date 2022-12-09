@@ -1,65 +1,56 @@
 module Main where
 
 import qualified Data.Map as Map
+import Control.Applicative ( ZipList(ZipList) )
 import Data.Maybe ( fromJust )
+import Data.Coerce (coerce)
 
 main :: IO ()
-main = do   grid <- lines <$> readFile "inputs/Day8.txt"
-            let dimensions@(i1,i2) = (length grid, length (head grid))
-            let gridMap   = makeGridMap grid
-            let coordList =  [(n,m) | n <- [1..i1], m <- [1..i2]]
-            putStrLn $ ("Day8.1: "++) $ show $ findVisibleNum dimensions coordList gridMap
-            putStrLn $ ("Day8.2: "++) $ show $ findMaxScenic  dimensions coordList gridMap
-
+main = do   grid <- lines <$> readFile "../../inputs/Day8.txt"
+            let dim@(i1,i2) = (length grid, length (head grid))
+            let pointList =  [(n,m) | n <- [1..i1], m <- [1..i2]]
+            let gridMap   = makeGridMap pointList grid
+            putStrLn $ ("Day8.1: "++) $ show $ findVisibleNum dim pointList gridMap
+            putStrLn $ ("Day8.2: "++) $ show $ findMaxScenic  dim pointList gridMap
 
 type Tree = Char
 type Row = [Tree]
 type Grid = [Row]
-type Coordinates = (Int,Int)
-type Dimensions = (Int,Int)
+type Point = (Int,Int)
+type Dim = (Int,Int)
 type Height = Char -- Char is an instance of the Ord class
 
+makeGridMap :: [Point] -> Grid -> Map.Map Point Tree
+makeGridMap points = Map.fromList . zip points . concat
 
-indexTrees :: Int -> Grid -> [(Coordinates,Tree)]
-indexTrees _ []     = [] 
-indexTrees n (l:ls) = indexTrees' n 1 l ++ indexTrees (n+1) ls
+findVisibleNum :: Dim -> [Point] -> Map.Map Point Tree -> Int
+findVisibleNum d@(d1,d2) list gridMap = sum     $ map (\point -> isTreeVisible d point gridMap) list
 
-indexTrees' :: Int -> Int -> [Tree] -> [(Coordinates, Tree)]
-indexTrees' _ _ []       = []
-indexTrees' n m (x:xs)  = ((n,m),x) : indexTrees' n (m+1) xs
+findMaxScenic  :: Dim -> [Point] -> Map.Map Point Tree -> Int
+findMaxScenic  d@(d1,d2) list gridMap = maximum $ map (\point -> scenicScore   d point gridMap) list
 
-makeGridMap :: Grid -> Map.Map Coordinates Tree
-makeGridMap = Map.fromList . indexTrees 1
+isTreeVisible :: Dim -> Point -> Map.Map Point Tree -> Int
+isTreeVisible dim@(d1,d2) point@(n,m) gridMap 
+    | n == 1 || n == d1 || m == 1 || m == d2 = 1
+    | or (traverseGridT dim point (fromJust $ Map.lookup point gridMap) gridMap checkVisibilityT) = 1
+    | otherwise = 0
 
-findVisibleNum :: Dimensions -> [Coordinates] -> Map.Map Coordinates Tree -> Int
-findVisibleNum d@(d1,d2) list gridMap = sum     $ map (\coord -> isTreeVisible d coord gridMap) list
+checkVisibilityT :: Point -> Height -> Map.Map Point Tree -> [Point] -> Bool
+checkVisibilityT (n,m) h gridMap = all  (\point -> fromJust (Map.lookup point gridMap) < h)
 
+scenicScore :: Dim -> Point -> Map.Map Point Tree -> Int
+scenicScore dim@(d1,d2) point@(n,m) gridMap
+    | n == 1 || n == d1 || m == 1 || m == d2 = 0
+    | otherwise                              = product $ traverseGridT dim point (fromJust $ Map.lookup point gridMap) gridMap scenicScoreT
 
-findMaxScenic  :: Dimensions -> [Coordinates] -> Map.Map Coordinates Tree -> Int
-findMaxScenic  d@(d1,d2) list gridMap = maximum $ map (\coord -> scenicScore   d coord gridMap) list
+scenicScoreT    :: Point -> Height -> Map.Map Point Tree -> [Point]-> Int
+scenicScoreT    (n,m) h gridMap l =  uncurry uncurryf $ span (\point -> fromJust (Map.lookup point gridMap) < h) l
+    where uncurryf a b = length a + if null b then 0 else 1
 
--- Return 1 if tree is visible else return 0
-isTreeVisible :: Dimensions -> Coordinates -> Map.Map Coordinates Tree -> Int
-isTreeVisible dim@(d1,d2) coord@(n,m) gridMap = if n == 1 || n == d1 || m == 1 || m == d2 then 1 else checkVisibility dim coord (fromJust $ Map.lookup coord gridMap) gridMap
-
-checkVisibility :: Dimensions -> Coordinates -> Height -> Map.Map Coordinates Tree -> Int
-checkVisibility d c h gridMap = if or (traverseGridT d c h gridMap checkVisibilityT) then 1 else 0 
-
-checkVisibilityT :: Dimensions -> Coordinates -> Height -> Map.Map Coordinates Tree -> (Coordinates -> Int -> Coordinates) -> [Int] -> Bool
-checkVisibilityT _ (n,m) h gridMap f = all  (\k -> fromJust (Map.lookup (f (n,m) k) gridMap) < h)
-
-
-scenicScore :: Dimensions -> Coordinates -> Map.Map Coordinates Tree -> Int
-scenicScore dim@(d1,d2) coord@(n,m) gridMap = if n == 1 || n == d1 || m == 1 || m == d2 then 0 else findScenicScore dim coord (fromJust $ Map.lookup coord gridMap) gridMap
-
-findScenicScore :: Dimensions -> Coordinates -> Height -> Map.Map Coordinates Tree -> Int
-findScenicScore d c h gridMap = product $ traverseGridT d c h gridMap scenicScoreT
-
-traverseGridT :: (Num a, Enum a) => (a, a) -> (a, a) -> t1 -> t2 -> ((a, a) -> (a, a) -> t1 -> t2 -> ((b, b) -> b -> (b, b)) -> [a] -> c) -> [c]
-traverseGridT d@(d1,d2) c@(n,m) h gridMap f = zipWith (f d c h gridMap) [rowf,rowf, colf,colf] [[(n-1),(n-2)..1],[(n+1)..d1],[(m-1),(m-2)..1],[(m+1)..d2]]
+traverseGridT :: Dim -> Point -> Height -> Map.Map Point Tree -> (Point -> Height -> Map.Map Point Tree -> [Point] -> a) -> [a]
+traverseGridT d@(d1,d2) c@(n,m) h gridMap f = map (f c h gridMap) $ coerce pointLL
     where   rowf (a,b) c = (c,b)
             colf (a,b) c = (a,c)
-
-scenicScoreT    :: Dimensions -> Coordinates -> Height -> Map.Map Coordinates Tree -> (Coordinates -> Int -> Coordinates) -> [Int] -> Int
-scenicScoreT    _ (n,m) h gridMap f l =  uncurry uncurryf $ span (\k -> fromJust (Map.lookup (f (n,m) k) gridMap) < h) l
-    where uncurryf a b = length a + if null b then 0 else 1
+            l1  = coerce  [map (rowf c),map (rowf c), map (colf c), map (colf c)]    :: ZipList ([Int] -> [Point])
+            l2  = coerce [[(n-1),(n-2)..1],[(n+1)..d1],[(m-1),(m-2)..1],[(m+1)..d2]] :: ZipList  [Int]
+            pointLL =  l1 <*> l2

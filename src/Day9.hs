@@ -5,9 +5,9 @@ import Control.Monad.Writer ( foldM, MonadWriter(writer), execWriter, Writer )
 import Data.Set ( Set, singleton, size )
 
 main :: IO ()
-main = do   input <- readFile "inputs/Day9.txt"
-            let writerMovesL n   =  concatMap (getWriterMoves n .  words) . lines $ input
-            let appliedMoves n   = writer (initialState n, singleton (0,0)) >>= \rope -> writerSequence rope (writerMovesL n)
+main = do   input <- readFile "../../inputs/Day9.txt"
+            let writerMovesL     = concatMap (getWriterMoves .  words) . lines $ input
+            let appliedMoves n   = writer (initialState n, singleton (0,0)) >>= \rope -> writerSequence rope writerMovesL
             let tailsMovesNum n  = size . execWriter $ appliedMoves n
             putStrLn $ ("Day9.1: " ++) $ show $ tailsMovesNum 2
             putStrLn $ ("Day9.2: " ++) $ show $ tailsMovesNum 10
@@ -34,8 +34,8 @@ updateNext (headX,headY) tail@(tailX,tailY)
     where   diffX = headX - tailX
             diffY = headY - tailY
 
-writerMove :: Int -> (Rope -> Rope) -> Rope -> Writer TailMoves Rope
-writerMove n move rope = let newRope = move rope in writer (newRope, singleton (newRope !! (n-1)))
+writerMove :: (Rope -> Rope) -> Rope -> Writer TailMoves Rope
+writerMove move rope = let newRope = move rope in writer (newRope, singleton (last newRope))
 
 moveL :: Rope -> Rope
 moveL ((headX,headY):tail) = updateRope ((headX-1,headY):tail)
@@ -49,8 +49,8 @@ moveU ((headX,headY):tail) = updateRope ((headX,headY+1):tail)
 moveD :: Rope -> Rope
 moveD ((headX,headY):tail) = updateRope ((headX,headY-1):tail)
 
-getWriterMoves :: Int -> [String] -> [Rope -> Writer TailMoves Rope]
-getWriterMoves n [x,y] = replicate (read y) . writerMove n $ case x of
+getWriterMoves :: [String] -> [Rope -> Writer TailMoves Rope]
+getWriterMoves [x,y] = replicate (read y) . writerMove $ case x of
         "L" -> moveL 
         "R" -> moveR
         "U" -> moveU
