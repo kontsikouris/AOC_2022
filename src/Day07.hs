@@ -1,9 +1,9 @@
 module Main where
 
-import Data.List ( isPrefixOf )
+import Data.List
 
 main :: IO ()
-main = do   fsZipper <- moveHome . flip constructFS mkFSZipper . map strToLine . lines <$> readFile "../../inputs/Day7.txt" 
+main = do   fsZipper <- moveHome . flip constructFS mkFSZipper . map strToLine . lines <$> readFile "inputs/Day7.txt" 
             let sizes = findSumL . getFS $ fsZipper
             let totalSize = head sizes
             print . sum . filter (<= 100000) $ sizes
@@ -24,6 +24,7 @@ data FS =   FSFile   { getFName :: FileName,  getFSize :: FileSize}
 data FSZipper = CurrFolder {getFS :: FS, getFSRootPath :: FSRootPath } 
         deriving Show
 
+
 data Line = CD String | LS | FSLine FS
 
 moveOut :: FSZipper -> FSZipper
@@ -31,10 +32,8 @@ moveOut (CurrFolder fs ((fsPrev,fsAfter,fName):fsRootPath)) = CurrFolder (FSFold
 moveOut _ = undefined
 
 moveIn :: FolderName -> FSZipper -> FSZipper
-moveIn fName fsZipper = CurrFolder fs $  (fsPrev, fsAfter, fsList) : getFSRootPath fsZipper
-
-        where   fsList = getFName $ getFS fsZipper
-                (fsPrev,fs:fsAfter) = break ((fName ==) . getFName) fsList
+moveIn fName fsZipper = CurrFolder fs $  (fsPrev, fsAfter, getFName $ getFS fsZipper) : getFSRootPath fsZipper  
+        where   (fsPrev,fs:fsAfter) = break ((fName ==) . getFName) (getfsList $ getFS fsZipper)
 
 moveHome :: FSZipper -> FSZipper
 moveHome fsZipper@(CurrFolder _ x) = if null x then fsZipper else moveHome $ moveOut fsZipper
@@ -43,7 +42,7 @@ mkFolder :: String -> FS
 mkFolder fname = FSFolder fname []
 
 mkFSZipper :: FSZipper
-mkFSZipper = CurrFolder (FSFolder "/" []) []
+mkFSZipper = CurrFolder (mkFolder "/") []
 
 setFolderContents :: [FS] -> FS -> FS
 setFolderContents l (FSFolder name _) = FSFolder name l
@@ -61,24 +60,17 @@ constructFS (CD r:lines) fsZipper   = constructFS lines $ case r of
                                     ".." -> moveOut   fsZipper
                                     "/"  -> moveHome  fsZipper
                                     _    -> moveIn  r fsZipper
-constructFS (LS:lines)   (CurrFolder fs fsl)   = constructFS rest (CurrFolder (setFolderContents (map unline fsLines) fs) fsl)
+constructFS (LS:lines)   (CurrFolder fs fsl)   = constructFS rest (CurrFolder (setFolderContents (map unlinefs fsLines) fs) fsl)
     where   isCommand line = case line of FSLine _ -> False ; _ -> True
             (fsLines,rest) = break isCommand lines
-            unline (FSLine x) = x
+            unlinefs (FSLine x) = x
 
 constructFS  _ _ = undefined
 
-separateDirFile :: [FS] -> ([FS], [FS])
-separateDirFile [] = ([], [])
-separateDirFile (fs: xs) =  case fs of
-                            FSFile   _ _    -> addFst fs $ separateDirFile xs
-                            FSFolder _ _    -> addSnd fs $ separateDirFile xs
-    where   addFst c (a,b) = (c:a,b)
-            addSnd c (a,b) = (a,c:b)
-
 findSumL :: FS -> [FileSize]
 findSumL (FSFolder name l) = (totalFileSize + folderSums) : concat lFolder'
-    where   (lFile, lFolder) = separateDirFile l
+    where   isFile fs = case fs of FSFile _ _ -> True ; _ -> False
+            (lFile, lFolder) = partition isFile l
             lFolder' = map findSumL lFolder
             totalFileSize = sum $ map getFSize lFile
             folderSums  = sum (map head lFolder')

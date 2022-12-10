@@ -4,7 +4,7 @@ import Data.Foldable ( Foldable(foldl') )
 
 main :: IO ()
 main = do   
-        x <- calculate . transform <$> readFile "../../inputs/Day2.txt"
+        x <- calculate . transform <$> readFile "inputs/Day2.txt"
         putStrLn $ "Day2.1: " ++ show (fst x)
         putStrLn $ "Day2.2: " ++ show (snd x)
 

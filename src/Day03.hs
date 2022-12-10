@@ -5,7 +5,7 @@ import Data.List ( sort )
 
 main :: IO ()
 main = do
-        nums  <- map (map priority) . words <$> readFile "../../inputs/Day3.txt"
+        nums  <- map (map priority) . words <$> readFile "inputs/Day3.txt"
         putStrLn $ ("Day3.1: "++) $ show $ sum $ map common1 nums
         putStrLn $ ("Day3.2: "++) $ show $ sum $ map common2 $ combine3 nums
 
