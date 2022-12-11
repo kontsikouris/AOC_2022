@@ -27,9 +27,10 @@ cast x
 
 resultPoints1 :: RPS -> RPS -> Int
 resultPoints1 x y
-    | x == y            = 3
-    | succRPS x == y    = 6
-    | otherwise         = 0
+    | x == succRPS y    = 0
+    | x ==         y    = 3
+    | x == prevRPS y    = 6
+    
 
 handPoints :: RPS -> Int
 handPoints Rock     = 1

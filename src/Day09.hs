@@ -1,4 +1,3 @@
-
 module Main where
 
 import Control.Monad.Writer ( foldM, MonadWriter(writer), execWriter, Writer )
@@ -29,7 +28,7 @@ updateRope l = l
 
 updateNext :: Point -> Point -> Point
 updateNext (headX,headY) tail@(tailX,tailY)
-    | abs diffX < 2 && abs diffY < 2 = tail
+    | max (abs diffX) (abs diffY) < 2 = tail
     | otherwise   = (tailX + signum diffX,tailY + signum diffY)
     where   diffX = headX - tailX
             diffY = headY - tailY

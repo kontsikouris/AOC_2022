@@ -1,6 +1,6 @@
 module Main where
 
-import Data.List
+import Data.List ( isPrefixOf, partition )
 
 main :: IO ()
 main = do   fsZipper <- moveHome . flip constructFS mkFSZipper . map strToLine . lines <$> readFile "inputs/Day7.txt" 
