@@ -13,8 +13,8 @@ main = do   inputLines <- lines <$> readFile "inputs/Day11.txt"
             putStrLn $ ("Day11.1 "++) $ show $ get2Max  $ finalMonkeyMap 20 (`div` 3)
             putStrLn $ ("Day11.1 "++) $ show $ get2Max  $ finalMonkeyMap 10000 (`mod` product [2,3,5,7,11,13,17,19])
 
--- The difference list structure is used for right to left concatenation of lsits.
--- There are resources online which explain how this is achieved
+-- The difference list structure is used to force right-associativity of concatenation of lists.
+-- There are resources online which explain how this is achieved and when it is useful
 type DiffList a = [a] -> [a]
 diffLappend :: DiffList a -> DiffList a -> DiffList a
 diffLappend l1 l2 = l1 . l2
