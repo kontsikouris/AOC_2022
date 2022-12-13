@@ -22,6 +22,6 @@ checkOverlaps [x,y,z,w]
     | x <= z && z <= y || x <= w && w <= y  = 1
     | otherwise                             = 0 
 
-separator :: Eq a => (a -> Bool) -> [a] -> [[a]]
+separator :: (a -> Bool) -> [a] -> [[a]]
 separator _ [] = []
 separator p xs = let (l1,lRest) = break p xs in l1: separator p (dropWhile p lRest)

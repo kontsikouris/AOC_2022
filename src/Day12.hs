@@ -13,8 +13,9 @@ main = do   grid <- lines <$> readFile "inputs/Day12.txt"
             let indexedGrid = zip pointList $ concat grid
             let ((start,end),gridMap)   = makeGridMap indexedGrid
             let lowestPoints = map (fmap (const 'a')) . filter (\(_,c) -> c == 'a' || c == 'S') $ indexedGrid
+            let gridMapRemovedLowest = List.foldl' (flip Map.delete) gridMap (map fst lowestPoints)
             putStrLn $ ("Day12.1 "++) $ show $ fromMaybe (-1) $ getShortestDist dim (Map.delete start gridMap) [(start,'a')] end
-            putStrLn $ ("Day12.2 "++) $ show $ fromMaybe (-1) $ getShortestDist dim (Map.delete start gridMap) lowestPoints  end
+            putStrLn $ ("Day12.2 "++) $ show $ fromMaybe (-1) $ getShortestDist dim gridMapRemovedLowest lowestPoints  end
             
 type Elevation = Char
 type Row = [Elevation]
@@ -36,7 +37,7 @@ getShortestDist :: Dim -> GridMap -> [State] -> Point -> Maybe Int
 getShortestDist dim gridMap states end
         | any cond states  = Just 0
         | null states      = Nothing
-        | otherwise        = (+1) <$> getShortestDist dim gridMap' newStates end
+        | otherwise        = (1+) <$> getShortestDist dim gridMap' newStates end
         where   (gridMap',newStates) = concat <$> List.mapAccumL (getMoves dim) gridMap states
                 cond state = end == fst state
 
@@ -49,4 +50,4 @@ getMoves (d1,d2) gridMap ((x,y), height)  = concat <$> List.mapAccumL accF gridM
                 accF gridMap point = let (maybeC,gridMap') = Map.alterF alterf point gridMap in (gridMap', f point maybeC) 
                 cond c = (ord c - ord height) <= 1
                 points' = [(x-1,y),(x,y-1),(x+1,y),(x,y+1)]
-                points = filter (\(n,m) -> 1 <= n && n <= d1 && 1 <= m && m <= d2) points' :: [Point]
+                points = filter (\(n,m) -> 1 <= n && n <= d1 && 1 <= m && m <= d2) points'

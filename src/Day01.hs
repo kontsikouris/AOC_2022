@@ -11,6 +11,7 @@ main = do
 castAndSort :: [String] -> [Int]
 castAndSort = sortBy (flip compare) . map (sum . map read) . separator null
 
-separator :: Eq a => (a -> Bool) -> [a] -> [[a]]
-separator _ [] = []
-separator p xs = let (l1,lRest) = break p xs in l1: separator p (dropWhile p lRest)
+separator :: (a -> Bool) -> [a] -> [[a]]
+separator p xs = separator' p (dropWhile p xs)
+    where   separator' _ [] = []
+            separator' p xs = let  (l1,lRest) = break p xs in l1 :separator p (dropWhile p lRest)
